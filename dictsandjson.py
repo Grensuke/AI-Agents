@@ -21,3 +21,38 @@ def get_price(item: str, qty: int = 1):
     return MENU[item.lower().strip()] * qty
 
 print(get_price("Cupcake ", 7))
+
+
+
+
+
+
+#decorators
+
+import functools
+
+def log_call(func):
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+
+        print("Calling:", func.__name__)
+
+        result = func(*args, **kwargs)
+
+        print("Returned:", result)
+
+        return result
+
+    return wrapper
+
+
+@log_call
+def get_price(item, qty=1):
+
+    MENU = {"cupcake": 80}
+
+    return MENU[item] * qty
+
+
+get_price("cupcake", 6)
