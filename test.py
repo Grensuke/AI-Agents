@@ -4,30 +4,69 @@ import os
 import json
 
 load_dotenv()
-# groq_api_key=os.getenv("groq_api_key")
+from langchain_groq import ChatGroq
+llm = ChatGroq(model="openai/gpt-oss-20b", temperature = 0.3)
 
-client = OpenAI(
-    api_key = os.getenv("GROQ_API_KEY"),        # who you are, who pays
-    base_url = "https://api.groq.com/openai/v1",   # send requests to Groq, not OpenAI
-)
+# reply = llm.invoke([
+#     ("system", "You are Sweet Crumbs assistant. Answer in under 30 words"),
+#     ("human", "Do you make eggless cakes?"),
+# ])
+# print(reply.content)
 
-SYSTEM = """Extract the order from the customer's message.
-Return ONLY JSON, no other text, with these keys:
-name (text), item (text), qty (number), date (text), eggless (true/false)."""
+from langchain_core.prompts import ChatPromptTemplate
 
-response = client.chat.completions.create(
-    model="openai/gpt-oss-20b",
-    temperature=0.2,                              # facts and prices: keep it focused
-    messages=[{"role": "system", "content": SYSTEM},
-              {"role": "user",   "content": "Sravani: 6 cupcakes tmrw evening, normal with egg ok"}],
-)
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are the assistant for {business}. Answer in under 30 words."),
+    ("human",  "{question}"),
+])
 
-reply = response.choices[0].message.content     # a string that looks like JSON
-order = json.loads(reply)       
-print(reply)                 # string → Python dict
-print(order["item"], order["qty"])               # plum cake 2
-text = json.dumps(order)
-print(text)
+from langchain_core.output_parsers import StrOutputParser
+
+chain = prompt | llm | StrOutputParser()     # fill blanks → ask model → keep just the text
+answer = chain.invoke({"business": "Petrol Bunk Assistant",
+                       "question": "Do you make eggless cakes?"})
+print(answer)
+
+
+
+
+
+
+
+
+
+
+
+# from openai import OpenAI
+# from dotenv import load_dotenv
+# import os
+# import json
+
+# load_dotenv()
+# # groq_api_key=os.getenv("groq_api_key")
+
+# client = OpenAI(
+#     api_key = os.getenv("GROQ_API_KEY"),        # who you are, who pays
+#     base_url = "https://api.groq.com/openai/v1",   # send requests to Groq, not OpenAI
+# )
+
+# SYSTEM = """Extract the order from the customer's message.
+# Return ONLY JSON, no other text, with these keys:
+# name (text), item (text), qty (number), date (text), eggless (true/false)."""
+
+# response = client.chat.completions.create(
+#     model="openai/gpt-oss-20b",
+#     temperature=0.2,                              # facts and prices: keep it focused
+#     messages=[{"role": "system", "content": SYSTEM},
+#               {"role": "user",   "content": "Sravani: 6 cupcakes tmrw evening, normal with egg ok"}],
+# )
+
+# reply = response.choices[0].message.content     # a string that looks like JSON
+# order = json.loads(reply)
+# print(reply)                 # string → Python dict
+# print(order["item"], order["qty"])               # plum cake 2
+# text = json.dumps(order)
+# print(text)
 
 
 
